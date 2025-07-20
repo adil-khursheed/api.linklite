@@ -30,7 +30,7 @@ const userSchema = new Schema<IUser>(
     },
     verifyEmailToken: {
       type: String,
-      required: true,
+      default: null,
     },
     email_verified: {
       type: Boolean,

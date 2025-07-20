@@ -62,7 +62,52 @@ export const registerUser = async (
   } catch (err) {
     const error = createHttpError(
       500,
-      err instanceof Error ? err.message : "An unknown error occurred"
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while registering the user"
+    );
+    return next(error);
+  }
+};
+
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { verifyEmailToken } = req.params;
+    if (!verifyEmailToken) {
+      const error = createHttpError(400, "Verify email token is required");
+      return next(error);
+    }
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(verifyEmailToken)
+      .digest("hex");
+
+    const user = await User.findOne({ verifyEmailToken: hashedToken });
+    if (!user) {
+      const error = createHttpError(400, "Invalid verify email token");
+      return next(error);
+    }
+
+    user.email_verified = true;
+    user.verifyEmailToken = null;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verification successful.",
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while verifying the user email"
     );
     return next(error);
   }
