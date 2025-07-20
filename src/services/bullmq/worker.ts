@@ -1,0 +1,51 @@
+import Redis from "ioredis";
+import { _config } from "../../config/config";
+import { Worker, WorkerOptions } from "bullmq";
+import { logger } from "../../utils/winstonLogger";
+import { sendMail } from "../../utils/sendMail";
+
+const redis_uri = _config.redis_uri as string;
+
+const sharedConnection = new Redis(redis_uri, { maxRetriesPerRequest: null });
+
+const workerOptions: WorkerOptions = {
+  connection: sharedConnection,
+  concurrency: 1,
+  limiter: {
+    max: 10,
+    duration: 1000,
+  },
+  lockDuration: 60000,
+  removeOnComplete: {
+    age: 30000,
+  },
+  removeOnFail: {
+    age: 20 * 24 * 60 * 60,
+  },
+};
+
+export const emailVerificationWorker = new Worker(
+  "emailVerification",
+  async (job) => {
+    logger.info("Email verification job started");
+    await sendMail(job.data.options);
+    logger.info("Email verification job completed");
+  },
+  workerOptions
+);
+
+emailVerificationWorker.on("failed", (job, err) => {
+  if (job) {
+    logger.error(
+      `Email verification job failed for job ${job.id} with error: ${err.message}`
+    );
+  } else {
+    logger.error(`Email verification job failed with error: ${err.message}`);
+  }
+});
+
+emailVerificationWorker.on("completed", (job) => {
+  if (job) {
+    logger.info(`Email verification job completed for job ${job.id}`);
+  }
+});

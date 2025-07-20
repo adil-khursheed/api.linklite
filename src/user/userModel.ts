@@ -26,6 +26,10 @@ const userSchema = new Schema<IUser>(
     },
     salt: {
       type: String,
+      default: null,
+    },
+    verifyEmailToken: {
+      type: String,
       required: true,
     },
     email_verified: {
@@ -55,7 +59,7 @@ const userSchema = new Schema<IUser>(
 
 userSchema.pre("save", async function (next) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (emailRegex.test(this.email)) {
+  if (!emailRegex.test(this.email)) {
     const error = createHttpError("Please enter a valid email address");
     return next(error);
   }

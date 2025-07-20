@@ -7,6 +7,7 @@ interface IUser {
   password: string;
   salt: string;
   email_verified: boolean;
+  verifyEmailToken: string | null;
   category: string;
   resetPasswordToken: string | null;
   resetTokenExpiry: Date | null;

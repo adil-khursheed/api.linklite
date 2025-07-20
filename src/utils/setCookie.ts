@@ -20,7 +20,7 @@ const setCookie = async ({ message, next, res, statusCode, user }: Cookie) => {
     );
 
     const userToLogin = await User.findById(user._id).select(
-      "-password -salt -resetPasswordToken -resetTokenExpiry"
+      "-password -salt -resetPasswordToken -resetTokenExpiry -verifyEmailToken"
     );
 
     const options: CookieOptions = {
