@@ -83,7 +83,9 @@ userSchema.pre("save", async function (next) {
   } catch (err) {
     const error = createHttpError(
       500,
-      err instanceof Error ? err.message : "An unknown error occurred"
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while pre-saving the user"
     );
     return next(error);
   }
@@ -111,7 +113,9 @@ userSchema.methods.comparePassword = async function (
   } catch (err) {
     const error = createHttpError(
       500,
-      err instanceof Error ? err.message : "An unknown error occurred"
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while comparing the password"
     );
     throw error;
   }

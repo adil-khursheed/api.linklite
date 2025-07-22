@@ -14,8 +14,18 @@ interface IUser {
   refreshToken: string;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword: () => Promise<boolean>;
+  comparePassword: (password: string) => Promise<boolean>;
   getToken: () => Promise<string>;
   generateAccessToken: () => string;
   generateRefreshToken: () => string;
 }
+
+type TUser = Omit<
+  IUser,
+  | "password"
+  | "salt"
+  | "resetPasswordToken"
+  | "resetTokenExpiry"
+  | "verifyEmailToken"
+  | "refreshToken"
+>;
