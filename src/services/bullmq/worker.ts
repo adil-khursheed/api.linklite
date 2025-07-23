@@ -49,3 +49,29 @@ emailVerificationWorker.on("completed", (job) => {
     logger.info(`Email verification job completed for job ${job.id}`);
   }
 });
+
+export const forgotPasswordWorker = new Worker(
+  "forgotPassword",
+  async (job) => {
+    logger.info("Forgot password job started");
+    await sendMail(job.data.options);
+    logger.info("Forgot password job completed");
+  },
+  workerOptions
+);
+
+forgotPasswordWorker.on("failed", (job, err) => {
+  if (job) {
+    logger.error(
+      `Forgot password job failed for job ${job.id} with error: ${err.message}`
+    );
+  } else {
+    logger.error(`Forgot password job failed with error: ${err.message}`);
+  }
+});
+
+forgotPasswordWorker.on("completed", (job) => {
+  if (job) {
+    logger.info(`Forgot password job completed for job ${job.id}`);
+  }
+});

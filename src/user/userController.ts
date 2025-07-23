@@ -4,7 +4,10 @@ import { nanoid } from "nanoid";
 import crypto from "crypto";
 import User from "./userModel";
 import setCookie from "../utils/setCookie";
-import { emailVerificationQueue } from "../services/bullmq/producer";
+import {
+  emailVerificationQueue,
+  forgotPasswordQueue,
+} from "../services/bullmq/producer";
 import { _config } from "../config/config";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { generateAccessAndRefreshToken } from "../utils/generateAccessAndRefreshToken";
@@ -310,6 +313,220 @@ export const refreshAccessToken = async (
       err instanceof Error
         ? err.message
         : "An unknown error occurred while refreshing the user"
+    );
+    return next(error);
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      const error = createHttpError(400, "Email is required");
+      return next(error);
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      const error = createHttpError(400, "User not found");
+      return next(error);
+    }
+
+    const resetPasswordToken = await user.getToken();
+
+    await forgotPasswordQueue.add("forgot_password", {
+      options: {
+        email,
+        subject: "Reset Password",
+        message: `
+            <h1 style="font-size:28px;font-weight:700;margin:30px 0;color:#333;">Password Reset Request</h1>
+            <p>We received a request to reset your password. Click the button below to reset it:</p>
+            <a href="${_config.frontend_url}/reset-password/${resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #9652f4; text-decoration: none; border-radius: 5px;">Reset Password</a>
+            <p>If you did not request a password reset, please ignore this email.</p>
+          `,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Reset password link sent to ${email}.`,
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while forgot password"
+    );
+    return next(error);
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { resetPasswordToken, password } = req.body;
+    if (!resetPasswordToken || !password) {
+      const error = createHttpError(
+        400,
+        "Reset password token and password are required"
+      );
+      return next(error);
+    }
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetPasswordToken)
+      .digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetTokenExpiry: {
+        $gt: Date.now(),
+      },
+    });
+    if (!user) {
+      const error = createHttpError(400, "Invalid reset password token");
+      return next(error);
+    }
+
+    const salt = crypto.randomBytes(16).toString("hex");
+    crypto.pbkdf2(
+      password,
+      salt,
+      1000,
+      64,
+      "sha512",
+      async (err, derivedKey) => {
+        if (err) {
+          const error = createHttpError(
+            500,
+            err instanceof Error
+              ? err.message
+              : "An unknown error occurred while resetting password"
+          );
+          return next(error);
+        }
+        user.password = derivedKey.toString("hex");
+        user.salt = salt;
+        user.resetPasswordToken = null;
+        user.resetTokenExpiry = null;
+
+        await user.save();
+
+        res.status(200).json({
+          success: true,
+          message: "Password reset successfully.",
+        });
+      }
+    );
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while resetting password"
+    );
+    return next(error);
+  }
+};
+
+export const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      const error = createHttpError(
+        400,
+        "Old password and new password are required"
+      );
+      return next(error);
+    }
+
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+      const error = createHttpError(400, "User not found");
+      return next(error);
+    }
+
+    const isPasswordValid = await user.comparePassword(oldPassword);
+    if (!isPasswordValid) {
+      const error = createHttpError(400, "Invalid old password");
+      return next(error);
+    }
+
+    const salt = crypto.randomBytes(16).toString("hex");
+    crypto.pbkdf2(
+      newPassword,
+      salt,
+      1000,
+      64,
+      "sha512",
+      async (err, derivedKey) => {
+        if (err) {
+          const error = createHttpError(
+            500,
+            err instanceof Error
+              ? err.message
+              : "  An unknown error occurred while changing password"
+          );
+          return next(error);
+        }
+        user.password = derivedKey.toString("hex");
+        user.salt = salt;
+
+        await user.save();
+
+        res.status(200).json({
+          success: true,
+          message: "Password changed successfully.",
+        });
+      }
+    );
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while changing password"
+    );
+    return next(error);
+  }
+};
+
+export const getUserProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+      const error = createHttpError(404, "User not found");
+      return next(error);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User profile fetched successfully.",
+      user,
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while fetching the user profile"
     );
     return next(error);
   }
