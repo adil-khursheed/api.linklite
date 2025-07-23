@@ -41,6 +41,10 @@ const userSchema = new Schema<IUser>(
       enum: ["free", "pro", "premium"],
       default: "free",
     },
+    short_links_limit: {
+      type: Number,
+      default: 5,
+    },
     resetPasswordToken: {
       type: String,
       default: null,

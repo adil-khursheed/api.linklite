@@ -9,6 +9,7 @@ interface IUser {
   email_verified: boolean;
   verifyEmailToken: string | null;
   category: string;
+  short_links_limit: number;
   resetPasswordToken: string | null;
   resetTokenExpiry: Date | null;
   refreshToken: string;

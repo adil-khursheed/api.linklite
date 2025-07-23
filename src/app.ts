@@ -4,9 +4,10 @@ import winston from "winston";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
+import { _config } from "./config/config";
 
 import userRoutes from "./user/userRoutes.js";
-import { _config } from "./config/config";
+import urlRoutes from "./urls/urlRoutes.js";
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.get("/", (req: Request, res: Response) => {
 
 // Routes
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/urls", urlRoutes);
 
 app.use(globalErrorHandler);
 export { app };
