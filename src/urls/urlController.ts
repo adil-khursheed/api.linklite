@@ -57,38 +57,3 @@ export const createUrl = async (
     return next(error);
   }
 };
-
-export const redirectToOriginalLink = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { shortLinkId } = req.params;
-    if (!shortLinkId) {
-      const error = createHttpError(400, "Short link ID is required");
-      return next(error);
-    }
-
-    const url = await Url.findOneAndUpdate(
-      { shortLinkId },
-      { $push: { clicksHistory: { timeStamp: Date.now() } } },
-      { new: true }
-    );
-
-    if (!url) {
-      const error = createHttpError(404, "URL not found");
-      return next(error);
-    }
-
-    res.redirect(url.originalLink);
-  } catch (err) {
-    const error = createHttpError(
-      500,
-      err instanceof Error
-        ? err.message
-        : "An unknown error occurred while redirecting to the original link"
-    );
-    return next(error);
-  }
-};

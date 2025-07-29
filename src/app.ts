@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import expressWinston from "express-winston";
 import winston from "winston";
 import cors from "cors";
@@ -8,6 +8,8 @@ import { _config } from "./config/config";
 
 import userRoutes from "./user/userRoutes.js";
 import urlRoutes from "./urls/urlRoutes.js";
+import createHttpError from "http-errors";
+import Url from "./urls/urlModel";
 
 const app = express();
 
@@ -53,6 +55,40 @@ app.use(cors(corsOptions));
 app.get("/", (req: Request, res: Response) => {
   return res.json({ message: "Welcome to LinkLite API👋" });
 });
+
+app.get(
+  "/:shortLinkId",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { shortLinkId } = req.params;
+      if (!shortLinkId) {
+        const error = createHttpError(400, "Short link ID is required");
+        return next(error);
+      }
+
+      const url = await Url.findOneAndUpdate(
+        { shortLinkId },
+        { $push: { clicksHistory: { timeStamp: Date.now() } } },
+        { new: true }
+      );
+
+      if (!url) {
+        const error = createHttpError(404, "URL not found");
+        return next(error);
+      }
+
+      res.redirect(url.originalLink);
+    } catch (err) {
+      const error = createHttpError(
+        500,
+        err instanceof Error
+          ? err.message
+          : "An unknown error occurred while redirecting to the original link"
+      );
+      return next(error);
+    }
+  }
+);
 
 // Routes
 app.use("/api/v1/users", userRoutes);
