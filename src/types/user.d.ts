@@ -2,17 +2,18 @@ import mongoose from "mongoose";
 
 interface IUser {
   _id: mongoose.Types.ObjectId;
-  displayName: string;
+  display_name: string;
+  account_name: string;
   email: string;
   password: string;
   salt: string;
   email_verified: boolean;
-  verifyEmailToken: string | null;
+  verify_email_token: string | null;
   category: string;
   short_links_limit: number;
-  resetPasswordToken: string | null;
-  resetTokenExpiry: Date | null;
-  refreshToken: string;
+  reset_password_token: string | null;
+  reset_token_expiry: Date | null;
+  refresh_token: string;
   createdAt: Date;
   updatedAt: Date;
   comparePassword: (password: string) => Promise<boolean>;
@@ -25,8 +26,8 @@ type TUser = Omit<
   IUser,
   | "password"
   | "salt"
-  | "resetPasswordToken"
-  | "resetTokenExpiry"
-  | "verifyEmailToken"
-  | "refreshToken"
+  | "reset_password_token"
+  | "reset_token_expiry"
+  | "verify_email_token"
+  | "refresh_token"
 >;

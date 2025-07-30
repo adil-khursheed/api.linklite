@@ -10,7 +10,12 @@ const pbkdf2Async = promisify(crypto.pbkdf2);
 
 const userSchema = new Schema<IUser>(
   {
-    displayName: {
+    display_name: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    account_name: {
       type: String,
       required: true,
       unique: true,
@@ -28,7 +33,7 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: null,
     },
-    verifyEmailToken: {
+    verify_email_token: {
       type: String,
       default: null,
     },
@@ -45,15 +50,15 @@ const userSchema = new Schema<IUser>(
       type: Number,
       default: 5,
     },
-    resetPasswordToken: {
+    reset_password_token: {
       type: String,
       default: null,
     },
-    resetTokenExpiry: {
+    reset_token_expiry: {
       type: Date,
       default: null,
     },
-    refreshToken: {
+    refresh_token: {
       type: String,
       default: null,
     },
@@ -128,12 +133,12 @@ userSchema.methods.comparePassword = async function (
 userSchema.methods.getToken = async function (): Promise<string> {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
-  this.resetPasswordToken = crypto
+  this.reset_password_token = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
 
-  this.resetTokenExpiry = Date.now() + 10 * 60 * 1000;
+  this.reset_token_expiry = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
 };

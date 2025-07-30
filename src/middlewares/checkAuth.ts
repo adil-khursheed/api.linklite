@@ -33,7 +33,7 @@ export const checkAuth = async (
     ) as JwtPayload;
 
     const user = await User.findById(decodedToken?.id).select(
-      "-password -salt -resetPasswordToken -resetTokenExpiry -verifyEmailToken -refreshToken"
+      "-password -salt -reset_password_token -reset_token_expiry -verify_email_token -refresh_token"
     );
 
     if (!user) {

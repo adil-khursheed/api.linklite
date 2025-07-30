@@ -67,8 +67,8 @@ app.get(
       }
 
       const url = await Url.findOneAndUpdate(
-        { shortLinkId },
-        { $push: { clicksHistory: { timeStamp: Date.now() } } },
+        { short_link_id: shortLinkId },
+        { $push: { clicks_history: { time_stamp: Date.now() } } },
         { new: true }
       );
 
@@ -77,7 +77,7 @@ app.get(
         return next(error);
       }
 
-      res.redirect(url.originalLink);
+      res.redirect(url.original_link);
     } catch (err) {
       const error = createHttpError(
         500,

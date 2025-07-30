@@ -33,11 +33,14 @@ export const registerUser = async (
 
     const verifyEmailToken = crypto.randomBytes(20).toString("hex");
 
+    const name = nanoid(12);
+
     const user = await User.create({
       email,
       password,
-      displayName: nanoid(12),
-      verifyEmailToken: crypto
+      display_name: name,
+      account_name: name,
+      verify_email_token: crypto
         .createHash("sha256")
         .update(verifyEmailToken)
         .digest("hex"),
@@ -92,14 +95,14 @@ export const verifyEmail = async (
       .update(verifyEmailToken)
       .digest("hex");
 
-    const user = await User.findOne({ verifyEmailToken: hashedToken });
+    const user = await User.findOne({ verify_email_token: hashedToken });
     if (!user) {
       const error = createHttpError(400, "Invalid verify email token");
       return next(error);
     }
 
     user.email_verified = true;
-    user.verifyEmailToken = null;
+    user.verify_email_token = null;
 
     await user.save();
 
@@ -137,7 +140,7 @@ export const resendEmail = async (
 
     const verifyEmailToken = crypto.randomBytes(20).toString("hex");
 
-    user.verifyEmailToken = crypto
+    user.verify_email_token = crypto
       .createHash("sha256")
       .update(verifyEmailToken)
       .digest("hex");
@@ -225,7 +228,7 @@ export const logoutUser = async (
       req.user?._id,
       {
         $unset: {
-          refreshToken: 1,
+          refresh_token: 1,
         },
       },
       { new: true }
@@ -282,7 +285,7 @@ export const refreshAccessToken = async (
       return next(error);
     }
 
-    if (incomingRefreshToken !== user.refreshToken) {
+    if (incomingRefreshToken !== user.refresh_token) {
       const error = createHttpError(401, "Refresh token is expired or used");
       return next(error);
     }
@@ -387,8 +390,8 @@ export const resetPassword = async (
       .digest("hex");
 
     const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetTokenExpiry: {
+      reset_password_token: hashedToken,
+      reset_token_expiry: {
         $gt: Date.now(),
       },
     });
@@ -416,8 +419,8 @@ export const resetPassword = async (
         }
         user.password = derivedKey.toString("hex");
         user.salt = salt;
-        user.resetPasswordToken = null;
-        user.resetTokenExpiry = null;
+        user.reset_password_token = null;
+        user.reset_token_expiry = null;
 
         await user.save();
 

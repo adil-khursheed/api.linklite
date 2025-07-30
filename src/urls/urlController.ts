@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
-import crypto from "crypto";
 import { nanoid } from "nanoid";
 import { _config } from "../config/config";
 
@@ -33,9 +32,9 @@ export const createUrl = async (
     const shortLinkId = nanoid(8);
 
     const url = await Url.create({
-      userId: user._id,
-      shortLinkId,
-      originalLink,
+      user_id: user._id,
+      short_link_id: shortLinkId,
+      original_link: originalLink,
     });
 
     user.short_links_limit -= 1;

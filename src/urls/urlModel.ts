@@ -3,23 +3,23 @@ import { TUrl } from "../types/url";
 
 const urlSchema = new Schema<TUrl>(
   {
-    userId: {
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    shortLinkId: {
+    short_link_id: {
       type: String,
       required: true,
       unique: true,
     },
-    originalLink: {
+    original_link: {
       type: String,
       required: true,
     },
-    clicksHistory: [
+    clicks_history: [
       {
-        timeStamp: Date,
+        time_stamp: Date,
       },
     ],
   },
