@@ -5,8 +5,8 @@ interface IUser {
   display_name: string;
   account_name: string;
   email: string;
-  password: string;
-  salt: string;
+  password: string | null;
+  salt: string | null;
   email_verified: boolean;
   verify_email_token: string | null;
   category: string;

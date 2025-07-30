@@ -14,4 +14,6 @@ export const _config = Object.freeze({
   smtp_pass: process.env.SMTP_PASS,
   redis_uri: process.env.REDIS_URI,
   frontend_url: process.env.FRONTEND_URL,
+  google_client_id: process.env.GOOGLE_CLIENT_ID,
+  google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
 });

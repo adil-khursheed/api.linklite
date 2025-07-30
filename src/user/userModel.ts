@@ -2,11 +2,8 @@ import mongoose, { Schema } from "mongoose";
 import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { promisify } from "util";
 import { IUser } from "../types/user";
 import { _config } from "../config/config";
-
-const pbkdf2Async = promisify(crypto.pbkdf2);
 
 const userSchema = new Schema<IUser>(
   {
@@ -27,7 +24,7 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
+      default: null,
     },
     salt: {
       type: String,
@@ -73,31 +70,7 @@ userSchema.pre("save", async function (next) {
     return next(error);
   }
 
-  if (!this.isModified("password")) return next();
-
-  try {
-    const salt = crypto.randomBytes(16).toString("hex");
-    this.salt = salt;
-
-    const derivedKey = await pbkdf2Async(
-      this.password,
-      salt,
-      1000,
-      64,
-      "sha512"
-    );
-    this.password = derivedKey.toString("hex");
-
-    next();
-  } catch (err) {
-    const error = createHttpError(
-      500,
-      err instanceof Error
-        ? err.message
-        : "An unknown error occurred while pre-saving the user"
-    );
-    return next(error);
-  }
+  next();
 });
 
 userSchema.methods.comparePassword = async function (

@@ -3,6 +3,7 @@ import {
   changePassword,
   forgotPassword,
   getUserProfile,
+  googleAuth,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -15,6 +16,7 @@ import { checkAuth } from "../middlewares/checkAuth";
 
 const router = express.Router();
 
+router.post("/google-auth", googleAuth);
 router.post("/register", registerUser);
 router.post("/verify-email", checkAuth, verifyEmail);
 router.post("/resend-email", checkAuth, resendEmail);

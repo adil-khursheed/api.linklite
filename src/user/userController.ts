@@ -2,6 +2,10 @@ import { CookieOptions, NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import { nanoid } from "nanoid";
 import crypto from "crypto";
+import { promisify } from "util";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import axios from "axios";
+
 import User from "./userModel";
 import setCookie from "../utils/setCookie";
 import {
@@ -9,8 +13,83 @@ import {
   forgotPasswordQueue,
 } from "../services/bullmq/producer";
 import { _config } from "../config/config";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { generateAccessAndRefreshToken } from "../utils/generateAccessAndRefreshToken";
+
+const pbkdf2Async = promisify(crypto.pbkdf2);
+
+export const googleAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { access_token } = req.body;
+
+    if (!access_token) {
+      const error = createHttpError(400, "Access token is required");
+      return next(error);
+    }
+
+    const tokenResponse = await axios.get(
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`
+    );
+
+    const userResponse = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`
+    );
+
+    const tokenInfo = tokenResponse.data;
+    const userInfo = userResponse.data;
+
+    if (!tokenInfo || !userInfo) {
+      const error = createHttpError(401, "Invalid access token");
+      return next(error);
+    }
+
+    const { email, name } = userInfo;
+    if (!email) {
+      const error = createHttpError(404, "Email not found");
+      return next(error);
+    }
+
+    const user = await User.findOne({ email });
+
+    if (user) {
+      setCookie({
+        message: "Login successful",
+        next,
+        res,
+        statusCode: 200,
+        user,
+      });
+    } else {
+      const account_name = nanoid(10);
+
+      const newUser = await User.create({
+        email,
+        account_name,
+        display_name: name,
+        email_verified: true,
+      });
+
+      setCookie({
+        message: "Login successful",
+        next,
+        res,
+        statusCode: 200,
+        user: newUser,
+      });
+    }
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while registering the user"
+    );
+    return next(error);
+  }
+};
 
 export const registerUser = async (
   req: Request,
@@ -33,11 +112,16 @@ export const registerUser = async (
 
     const verifyEmailToken = crypto.randomBytes(20).toString("hex");
 
-    const name = nanoid(12);
+    const name = nanoid(10);
+
+    const salt = crypto.randomBytes(16).toString("hex");
+
+    const derivedKey = await pbkdf2Async(password, salt, 1000, 64, "sha512");
 
     const user = await User.create({
       email,
-      password,
+      password: derivedKey.toString("hex"),
+      salt,
       display_name: name,
       account_name: name,
       verify_email_token: crypto
