@@ -425,6 +425,8 @@ export const forgotPassword = async (
 
     const resetPasswordToken = await user.getToken();
 
+    await user.save();
+
     await forgotPasswordQueue.add("forgot_password", {
       options: {
         email,
@@ -432,7 +434,7 @@ export const forgotPassword = async (
         message: `
             <h1 style="font-size:28px;font-weight:700;margin:30px 0;color:#333;">Password Reset Request</h1>
             <p>We received a request to reset your password. Click the button below to reset it:</p>
-            <a href="${_config.frontend_url}/reset-password/${resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #9652f4; text-decoration: none; border-radius: 5px;">Reset Password</a>
+            <a href="${_config.frontend_url}/reset-password/${resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #010001; text-decoration: none; border-radius: 5px;">Reset Password</a>
             <p>If you did not request a password reset, please ignore this email.</p>
           `,
       },
@@ -597,7 +599,9 @@ export const getUserProfile = async (
   next: NextFunction
 ) => {
   try {
-    const user = await User.findById(req.user?._id);
+    const user = await User.findById(req.user?._id).select(
+      "-password -salt -reset_password_token -reset_token_expiry -verify_email_token -refresh_token"
+    );
     if (!user) {
       const error = createHttpError(404, "User not found");
       return next(error);
