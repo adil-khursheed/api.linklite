@@ -138,7 +138,7 @@ export const registerUser = async (
           <div>
             <p>Thank you for registering with LinkLite.in</p>
             <p>Please click on the link below to verify your email address:</p>
-            <a href="${_config.frontend_url}/verify-email/${verifyEmailToken}">Verify Email</a>
+            <a href="${_config.frontend_url_1}/verify-email/${verifyEmailToken}">Verify Email</a>
           </div>
         `,
       },
@@ -239,7 +239,7 @@ export const resendEmail = async (
           <div>
             <p>Thank you for registering with LinkLite.in</p>
             <p>Please click on the link below to verify your email address:</p>
-            <a href="${_config.frontend_url}/verify-email/${verifyEmailToken}">Verify Email</a>
+            <a href="${_config.frontend_url_1}/verify-email/${verifyEmailToken}">Verify Email</a>
           </div>
         `,
       },
@@ -434,7 +434,7 @@ export const forgotPassword = async (
         message: `
             <h1 style="font-size:28px;font-weight:700;margin:30px 0;color:#333;">Password Reset Request</h1>
             <p>We received a request to reset your password. Click the button below to reset it:</p>
-            <a href="${_config.frontend_url}/reset-password/${resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #010001; text-decoration: none; border-radius: 5px;">Reset Password</a>
+            <a href="${_config.frontend_url_1}/reset-password/${resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #010001; text-decoration: none; border-radius: 5px;">Reset Password</a>
             <p>If you did not request a password reset, please ignore this email.</p>
           `,
       },

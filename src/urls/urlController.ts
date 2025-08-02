@@ -29,11 +29,9 @@ export const createUrl = async (
       return next(error);
     }
 
-    const shortLinkId = nanoid(8);
-
     const url = await Url.create({
       user_id: user._id,
-      short_link_id: shortLinkId,
+      short_link_id: nanoid(8),
       original_link: originalLink,
     });
 

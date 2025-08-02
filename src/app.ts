@@ -30,8 +30,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const frontend_url = _config.frontend_url as string;
-const allowedOrigins = [frontend_url];
+const allowedOrigins = [_config.frontend_url_1, _config.frontend_url_2];
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
