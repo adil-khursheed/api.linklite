@@ -318,16 +318,10 @@ export const logoutUser = async (
       { new: true }
     );
 
-    const options: CookieOptions = {
-      httpOnly: true,
-      sameSite: _config.nodeEnv === "development" ? "strict" : "none",
-      secure: true,
-    };
-
     res
       .status(200)
-      .clearCookie("_linklite_access", options)
-      .clearCookie("_linklite_refresh", options)
+      .clearCookie("_linklite_access")
+      .clearCookie("_linklite_refresh")
       .json({
         success: true,
         message: "Logout successful",
@@ -374,9 +368,12 @@ export const refreshAccessToken = async (
       return next(error);
     }
 
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    const { access_token, refresh_token } = await generateAccessAndRefreshToken(
       user._id.toString()
     );
+
+    const access_expiry = new Date(Date.now() + 1000 * 60 * 60);
+    const refresh_expiry = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
     const options: CookieOptions = {
       httpOnly: true,
@@ -386,13 +383,21 @@ export const refreshAccessToken = async (
 
     res
       .status(200)
-      .cookie("_linklite_access", accessToken, options)
-      .cookie("_linklite_refresh", refreshToken, options)
+      .cookie("_linklite_access", access_token, {
+        ...options,
+        expires: access_expiry,
+      })
+      .cookie("_linklite_refresh", refresh_token, {
+        ...options,
+        expires: refresh_expiry,
+      })
       .json({
         success: true,
         message: "Access token refreshed successfully.",
-        accessToken,
-        refreshToken,
+        access_token,
+        refresh_token,
+        access_expiry,
+        refresh_expiry,
       });
   } catch (err) {
     const error = createHttpError(

@@ -8,14 +8,14 @@ export const generateAccessAndRefreshToken = async (userId: string) => {
       const error = createHttpError(404, "User not found");
       throw error;
     }
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+    const access_token = user.generateAccessToken();
+    const refresh_token = user.generateRefreshToken();
 
-    user.refresh_token = refreshToken;
+    user.refresh_token = refresh_token;
 
     await user.save({ validateBeforeSave: true });
 
-    return { accessToken, refreshToken };
+    return { access_token, refresh_token };
   } catch (err) {
     const error = createHttpError(
       err instanceof Error

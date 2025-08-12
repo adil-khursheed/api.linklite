@@ -15,13 +15,16 @@ type Cookie = {
 
 const setCookie = async ({ message, next, res, statusCode, user }: Cookie) => {
   try {
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    const { access_token, refresh_token } = await generateAccessAndRefreshToken(
       user._id.toString()
     );
 
     const userToLogin = await User.findById(user._id).select(
       "-password -salt -reset_password_token -reset_token_expiry -verify_email_token -refresh_token"
     );
+
+    const access_expiry = new Date(Date.now() + 1000 * 60 * 60);
+    const refresh_expiry = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
     const options: CookieOptions = {
       httpOnly: true,
@@ -31,13 +34,21 @@ const setCookie = async ({ message, next, res, statusCode, user }: Cookie) => {
 
     res
       .status(statusCode)
-      .cookie("_linklite_access", accessToken, options)
-      .cookie("_linklite_refresh", refreshToken, options)
+      .cookie("_linklite_access", access_token, {
+        ...options,
+        expires: access_expiry,
+      })
+      .cookie("_linklite_refresh", refresh_token, {
+        ...options,
+        expires: refresh_expiry,
+      })
       .json({
         success: true,
         message,
-        accessToken,
-        refreshToken,
+        access_token,
+        refresh_token,
+        access_expiry,
+        refresh_expiry,
         user: userToLogin,
       });
   } catch (err) {
