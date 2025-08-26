@@ -1,6 +1,5 @@
 import { CookieOptions, NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import { nanoid } from "nanoid";
 import crypto from "crypto";
 import { promisify } from "util";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -63,17 +62,14 @@ export const googleAuth = async (
         user,
       });
     } else {
-      const account_name = nanoid(10);
-
       const newUser = await User.create({
         email,
-        account_name,
         display_name: name,
         email_verified: true,
       });
 
       setCookie({
-        message: "Login successful",
+        message: "Registration successful",
         next,
         res,
         statusCode: 200,
@@ -110,9 +106,7 @@ export const registerUser = async (
       return next(error);
     }
 
-    const verifyEmailToken = crypto.randomBytes(20).toString("hex");
-
-    const name = nanoid(10);
+    const verifyEmailOtp = crypto.randomInt(100000, 999999).toString();
 
     const salt = crypto.randomBytes(16).toString("hex");
 
@@ -122,11 +116,10 @@ export const registerUser = async (
       email,
       password: derivedKey.toString("hex"),
       salt,
-      display_name: name,
-      account_name: name,
-      verify_email_token: crypto
+      display_name: email.split("@")[0],
+      verify_email_otp: crypto
         .createHash("sha256")
-        .update(verifyEmailToken)
+        .update(verifyEmailOtp)
         .digest("hex"),
     });
 
@@ -137,8 +130,8 @@ export const registerUser = async (
         message: `
           <div>
             <p>Thank you for registering with LinkLite.in</p>
-            <p>Please click on the link below to verify your email address:</p>
-            <a href="${_config.frontend_url_1}/verify-email/${verifyEmailToken}">Verify Email</a>
+            <p>Your one time password is:</p>
+            <p>OTP: ${verifyEmailOtp}</p>
           </div>
         `,
       },
@@ -168,25 +161,25 @@ export const verifyEmail = async (
   next: NextFunction
 ) => {
   try {
-    const { verifyEmailToken } = req.params;
-    if (!verifyEmailToken) {
+    const { verifyEmailOtp } = req.body;
+    if (!verifyEmailOtp) {
       const error = createHttpError(400, "Verify email token is required");
       return next(error);
     }
 
     const hashedToken = crypto
       .createHash("sha256")
-      .update(verifyEmailToken)
+      .update(verifyEmailOtp)
       .digest("hex");
 
-    const user = await User.findOne({ verify_email_token: hashedToken });
+    const user = await User.findOne({ verify_email_otp: hashedToken });
     if (!user) {
       const error = createHttpError(400, "Invalid verify email token");
       return next(error);
     }
 
     user.email_verified = true;
-    user.verify_email_token = null;
+    user.verify_email_otp = null;
 
     await user.save();
 
@@ -222,11 +215,11 @@ export const resendEmail = async (
       return next(error);
     }
 
-    const verifyEmailToken = crypto.randomBytes(20).toString("hex");
+    const verifyEmailOtp = crypto.randomInt(100000, 999999).toString();
 
-    user.verify_email_token = crypto
+    user.verify_email_otp = crypto
       .createHash("sha256")
-      .update(verifyEmailToken)
+      .update(verifyEmailOtp)
       .digest("hex");
 
     await user.save();
@@ -238,8 +231,8 @@ export const resendEmail = async (
         message: `
           <div>
             <p>Thank you for registering with LinkLite.in</p>
-            <p>Please click on the link below to verify your email address:</p>
-            <a href="${_config.frontend_url_1}/verify-email/${verifyEmailToken}">Verify Email</a>
+            <p>Your one time password is:</p>
+            <p>OTP: ${verifyEmailOtp}</p>
           </div>
         `,
       },

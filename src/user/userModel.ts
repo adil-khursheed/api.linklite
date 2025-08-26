@@ -5,63 +5,73 @@ import crypto from "crypto";
 import { IUser } from "../types/user";
 import { _config } from "../config/config";
 
-const userSchema = new Schema<IUser>(
-  {
-    display_name: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    account_name: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      default: null,
-    },
-    salt: {
-      type: String,
-      default: null,
-    },
-    verify_email_token: {
-      type: String,
-      default: null,
-    },
-    email_verified: {
-      type: Boolean,
-      default: false,
-    },
-    category: {
-      type: String,
-      enum: ["free", "pro", "premium"],
-      default: "free",
-    },
-    short_links_limit: {
-      type: Number,
-      default: 5,
-    },
-    reset_password_token: {
-      type: String,
-      default: null,
-    },
-    reset_token_expiry: {
-      type: Date,
-      default: null,
-    },
-    refresh_token: {
-      type: String,
-      default: null,
-    },
+const userSchema = new Schema<IUser>({
+  display_name: {
+    type: String,
+    required: true,
+    unique: true,
   },
-  { timestamps: true }
-);
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    default: null,
+  },
+  salt: {
+    type: String,
+    default: null,
+  },
+  verify_email_otp: {
+    type: String,
+    default: null,
+  },
+  email_verified: {
+    type: Boolean,
+    default: false,
+  },
+  category: {
+    type: String,
+    enum: ["free", "pro", "premium"],
+    default: "free",
+  },
+  workspace_limit: {
+    type: Number,
+    default: 2,
+  },
+  workspaces: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "Workspace",
+    },
+  ],
+  onboarded: {
+    type: Boolean,
+    default: false,
+  },
+  reset_password_token: {
+    type: String,
+    default: null,
+  },
+  reset_token_expiry: {
+    type: Date,
+    default: null,
+  },
+  refresh_token: {
+    type: String,
+    default: null,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 userSchema.pre("save", async function (next) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
