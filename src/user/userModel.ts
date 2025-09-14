@@ -28,6 +28,10 @@ const userSchema = new Schema<IUser>({
     type: String,
     default: null,
   },
+  email_otp_expiry: {
+    type: Date,
+    default: null,
+  },
   email_verified: {
     type: Boolean,
     default: false,
@@ -41,12 +45,6 @@ const userSchema = new Schema<IUser>({
     type: Number,
     default: 2,
   },
-  workspaces: [
-    {
-      type: mongoose.Types.ObjectId,
-      ref: "Workspace",
-    },
-  ],
   onboarded: {
     type: Boolean,
     default: false,

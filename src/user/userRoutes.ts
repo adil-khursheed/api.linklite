@@ -2,7 +2,7 @@ import express from "express";
 import {
   changePassword,
   forgotPassword,
-  getUserProfile,
+  getUser,
   googleAuth,
   loginUser,
   logoutUser,
@@ -26,6 +26,6 @@ router.post("/logout", checkAuth, logoutUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/change-password", checkAuth, changePassword);
-router.get("/profile", checkAuth, getUserProfile);
+router.get("/profile", checkAuth, getUser);
 
 export default router;

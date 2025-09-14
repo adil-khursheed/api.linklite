@@ -4,28 +4,78 @@ import createHttpError from "http-errors";
 import redis from "../services/redis";
 import User from "../user/userModel";
 
+export const countWorkspace = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      const error = createHttpError(400, "User not found");
+      return next(error);
+    }
+
+    const count = await Workspace.countDocuments({
+      created_by: userId,
+    });
+
+    res.status(200).json({
+      success: true,
+      count,
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while counting the workspaces"
+    );
+    return next(error);
+  }
+};
+
 export const checkWorkspaceSlugs = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { slug } = req.body;
-  if (!slug) {
-    const error = createHttpError(400, "Slug is required");
+  try {
+    const { slug } = req.body;
+    if (!slug) {
+      const error = createHttpError(400, "Slug is required");
+      return next(error);
+    }
+
+    const slugExists = await redis?.sismember("workspace", `${slug}`);
+    if (slugExists) {
+      const error = createHttpError(409, "Slug already exists");
+      return next(error);
+    }
+
+    const existing_workspace = await Workspace.findOne({
+      slug,
+    });
+    if (existing_workspace) {
+      const error = createHttpError(409, "Slug already exists");
+      return next(error);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Slug is available",
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while checking the workspace slug"
+    );
     return next(error);
   }
-
-  const slugExists = await redis?.sismember("workspace", `${slug}`);
-
-  if (slugExists) {
-    const error = createHttpError(409, "Slug already exists");
-    return next(error);
-  }
-
-  res.status(200).json({
-    success: true,
-    message: "Slug is available",
-  });
 };
 
 export const createWorkspace = async (
@@ -41,18 +91,22 @@ export const createWorkspace = async (
       return next(error);
     }
 
-    const existingSlug = await redis.sismember("workspace", `${slug}`);
-    if (existingSlug) {
+    const existing_slug = await redis.sismember("workspace", `${slug}`);
+    if (existing_slug) {
+      const error = createHttpError(409, "Slug already exists");
+      return next(error);
+    }
+
+    const existing_workspace = await Workspace.findOne({
+      slug,
+    });
+
+    if (existing_workspace) {
       const error = createHttpError(409, "Slug already exists");
       return next(error);
     }
 
     const userId = req.user?._id;
-
-    if (!userId) {
-      const error = createHttpError(400, "UserId not found");
-      return next(error);
-    }
 
     const user = await User.findById(userId);
     if (!user) {
@@ -60,7 +114,11 @@ export const createWorkspace = async (
       return next(error);
     }
 
-    if (user.workspaces.length >= user.workspace_limit) {
+    const existing_workspaces = await Workspace.find({
+      created_by: userId,
+    });
+
+    if (existing_workspaces.length >= user.workspace_limit) {
       const error = createHttpError(400, "Workspace limit reached");
       return next(error);
     }
@@ -74,11 +132,21 @@ export const createWorkspace = async (
 
     await redis?.sadd("workspace", [`${slug}`]);
 
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { $push: { workspaces: workspace._id } },
-      { new: true }
-    );
+    if (existing_workspaces.length === 0) {
+      await User.findOneAndUpdate(
+        {
+          _id: userId,
+        },
+        {
+          $set: {
+            onboarded: true,
+          },
+        },
+        {
+          new: true,
+        }
+      );
+    }
 
     res.status(201).json({
       success: true,

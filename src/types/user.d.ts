@@ -8,9 +8,9 @@ interface IUser {
   salt: string | null;
   email_verified: boolean;
   verify_email_otp: string | null;
+  email_otp_expiry: Date | null;
   category: string;
   workspace_limit: number;
-  workspaces: [mongoose.Types.ObjectId];
   onboarded: boolean;
   reset_password_token: string | null;
   reset_token_expiry: Date | null;

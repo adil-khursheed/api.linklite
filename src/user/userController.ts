@@ -121,6 +121,7 @@ export const registerUser = async (
         .createHash("sha256")
         .update(verifyEmailOtp)
         .digest("hex"),
+      email_otp_expiry: new Date(Date.now() + 1000 * 60 * 15), // Otp expires in 15 minutes
     });
 
     await emailVerificationQueue.add("verify_email", {
@@ -180,6 +181,7 @@ export const verifyEmail = async (
 
     user.email_verified = true;
     user.verify_email_otp = null;
+    user.email_otp_expiry = null;
 
     await user.save();
 
@@ -221,6 +223,7 @@ export const resendEmail = async (
       .createHash("sha256")
       .update(verifyEmailOtp)
       .digest("hex");
+    user.email_otp_expiry = new Date(Date.now() + 1000 * 60 * 15); // Otp expires in 15 minutes
 
     await user.save();
 
@@ -591,14 +594,14 @@ export const changePassword = async (
   }
 };
 
-export const getUserProfile = async (
+export const getUser = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const user = await User.findById(req.user?._id).select(
-      "-password -salt -reset_password_token -reset_token_expiry -verify_email_token -refresh_token"
+      "-password -salt -reset_password_token -reset_token_expiry -verify_email_otp -email_otp_expiry -refresh_token"
     );
     if (!user) {
       const error = createHttpError(404, "User not found");
@@ -607,7 +610,7 @@ export const getUserProfile = async (
 
     res.status(200).json({
       success: true,
-      message: "User profile fetched successfully.",
+      message: "User fetched successfully.",
       user,
     });
   } catch (err) {
@@ -615,7 +618,7 @@ export const getUserProfile = async (
       500,
       err instanceof Error
         ? err.message
-        : "An unknown error occurred while fetching the user profile"
+        : "An unknown error occurred while fetching the user"
     );
     return next(error);
   }

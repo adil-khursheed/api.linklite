@@ -20,7 +20,7 @@ const setCookie = async ({ message, next, res, statusCode, user }: Cookie) => {
     );
 
     const userToLogin = await User.findById(user._id).select(
-      "-password -salt -reset_password_token -reset_token_expiry -verify_email_token -refresh_token"
+      "-password -salt -reset_password_token -reset_token_expiry -verify_email_otp -refresh_token"
     );
 
     const access_expiry = new Date(Date.now() + 1000 * 60 * 60);
