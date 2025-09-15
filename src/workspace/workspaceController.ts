@@ -3,6 +3,7 @@ import Workspace from "./workspaceModel";
 import createHttpError from "http-errors";
 import redis from "../services/redis";
 import User from "../user/userModel";
+import { nanoid } from "nanoid";
 
 export const countWorkspace = async (
   req: Request,
@@ -128,24 +129,16 @@ export const createWorkspace = async (
       slug,
       members: [userId],
       created_by: userId,
+      invite_code: nanoid(10),
+      billing_cycle_start: new Date(Date.now()).getDate(),
     });
 
     await redis?.sadd("workspace", [`${slug}`]);
 
     if (existing_workspaces.length === 0) {
-      await User.findOneAndUpdate(
-        {
-          _id: userId,
-        },
-        {
-          $set: {
-            onboarded: true,
-          },
-        },
-        {
-          new: true,
-        }
-      );
+      user.default_workspace = workspace.slug;
+      user.onboarded = true;
+      await user.save();
     }
 
     res.status(201).json({

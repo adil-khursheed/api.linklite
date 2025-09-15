@@ -16,6 +16,16 @@ const userSchema = new Schema<IUser>({
     required: true,
     unique: true,
   },
+  avatar: {
+    key: {
+      type: String,
+      default: null,
+    },
+    url: {
+      type: String,
+      default: null,
+    },
+  },
   password: {
     type: String,
     default: null,
@@ -36,14 +46,13 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false,
   },
-  category: {
-    type: String,
-    enum: ["free", "pro", "premium"],
-    default: "free",
-  },
   workspace_limit: {
     type: Number,
     default: 2,
+  },
+  default_workspace: {
+    type: String,
+    default: null,
   },
   onboarded: {
     type: Boolean,

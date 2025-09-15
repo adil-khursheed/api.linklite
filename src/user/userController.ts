@@ -45,7 +45,7 @@ export const googleAuth = async (
       return next(error);
     }
 
-    const { email, name } = userInfo;
+    const { email, name, verified_email, picture } = userInfo;
     if (!email) {
       const error = createHttpError(404, "Email not found");
       return next(error);
@@ -65,7 +65,11 @@ export const googleAuth = async (
       const newUser = await User.create({
         email,
         display_name: name,
-        email_verified: true,
+        email_verified: verified_email,
+        avatar: {
+          key: null,
+          url: picture,
+        },
       });
 
       setCookie({

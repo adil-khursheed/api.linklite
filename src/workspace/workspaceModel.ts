@@ -11,6 +11,21 @@ const workspaceSchema = new Schema<IWorkspaceProps>({
     required: true,
     unique: true,
   },
+  logo: {
+    key: {
+      type: String,
+      default: null,
+    },
+    url: {
+      type: String,
+      default: null,
+    },
+  },
+  plan: {
+    type: String,
+    enum: ["free", "pro", "premium"],
+    default: "free",
+  },
   members: [
     {
       type: mongoose.Types.ObjectId,
@@ -40,6 +55,39 @@ const workspaceSchema = new Schema<IWorkspaceProps>({
   created_by: {
     type: Schema.Types.ObjectId,
     ref: "User",
+  },
+  tags_limit: {
+    type: Number,
+    default: 5,
+  },
+  folders_limit: {
+    type: Number,
+    default: 0,
+  },
+  folders_created: {
+    type: Number,
+    default: 0,
+  },
+  total_clicks: {
+    type: Number,
+    default: 0,
+  },
+  clicks_limit: {
+    type: Number,
+    default: 1000,
+  },
+  billing_cycle_start: {
+    type: Number,
+    default: 0,
+  },
+  invite_code: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  total_links: {
+    type: Number,
+    default: 0,
   },
   created_at: {
     type: Date,
