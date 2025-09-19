@@ -1,9 +1,12 @@
 import express from "express";
-import { createUrl } from "./urlController";
+import { createUrl, scrapeMetadata } from "./urlController";
 import { checkAuth } from "../middlewares/checkAuth";
 
 const router = express.Router();
 
-router.post("/create", checkAuth, createUrl);
+router.use(checkAuth);
+
+router.post("/create", createUrl);
+router.post("/metadata/scrape", scrapeMetadata);
 
 export default router;

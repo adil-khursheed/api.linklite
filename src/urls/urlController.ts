@@ -1,9 +1,32 @@
 import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
-import { nanoid } from "nanoid";
-
-import Url from "./urlModel";
 import Workspace from "../workspace/workspaceModel";
+import { extractHtmlMetadata } from "../utils/extractHtmlMetadata";
+
+export const scrapeMetadata = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      const error = createHttpError(400, "URL is required");
+      return next(error);
+    }
+
+    const metadata = await extractHtmlMetadata(url);
+    res.json({ success: true, metadata });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while creating the URL"
+    );
+    return next(error);
+  }
+};
 
 export const createUrl = async (
   req: Request,
@@ -11,7 +34,7 @@ export const createUrl = async (
   next: NextFunction
 ) => {
   try {
-    const { originalLink, workspace_id } = req.body;
+    const { originalLink } = req.body;
     if (!originalLink) {
       const error = createHttpError(400, "Original link is required");
       return next(error);
