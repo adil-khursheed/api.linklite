@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import Workspace from "../workspace/workspaceModel";
 import { extractHtmlMetadata } from "../utils/extractHtmlMetadata";
+import Url from "./urlModel";
 
 export const scrapeMetadata = async (
   req: Request,
@@ -34,37 +35,54 @@ export const createUrl = async (
   next: NextFunction
 ) => {
   try {
-    const { originalLink } = req.body;
-    if (!originalLink) {
-      const error = createHttpError(400, "Original link is required");
+    const {
+      workspace_id,
+      destination_url,
+      short_link_id,
+      domain,
+      tags,
+      comment,
+      link_metadata,
+    } = req.body;
+
+    if (!destination_url || !workspace_id || !short_link_id || !domain) {
+      const error = createHttpError(
+        400,
+        "Destination url or workspace id or short link id or domain is missing"
+      );
       return next(error);
     }
 
-    const workspace = await Workspace.findById(req.user?._id);
+    const workspace = await Workspace.findById(workspace_id);
+
     if (!workspace) {
       const error = createHttpError(404, "Workspace not found");
       return next(error);
     }
 
-    if (workspace.short_links_limit <= 0) {
+    if (workspace.links_created >= workspace.short_links_limit) {
       const error = createHttpError(400, "Short links limit exceeded");
       return next(error);
     }
 
-    // const url = await Url.create({
-    //   user_id: user._id,
-    //   short_link_id: nanoid(8),
-    //   original_link: originalLink,
-    // });
+    const url = await Url.create({
+      workspace_id,
+      domain,
+      short_link_id,
+      destination_url,
+      tags,
+      comment,
+      link_metadata,
+    });
 
-    // user.short_links_limit -= 1;
+    workspace.links_created += 1;
 
-    // await user.save();
+    await workspace.save();
 
     res.status(201).json({
       success: true,
       message: "URL created successfully.",
-      // url,
+      url,
     });
   } catch (err) {
     const error = createHttpError(

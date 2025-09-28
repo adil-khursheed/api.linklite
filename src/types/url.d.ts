@@ -2,10 +2,18 @@ import mongoose from "mongoose";
 
 type TUrl = {
   _id: string;
-  user_id: mongoose.Types.ObjectId;
+  workspace_id: mongoose.Types.ObjectId;
+  domain: string;
   short_link_id: string;
-  original_link: string;
-  clicks_history: Array<{ time_stamp: Date }>;
-  createdAt: Date;
-  updatedAt: Date;
+  destination_url: string;
+  tags: [mongoose.Types.ObjectId];
+  comment: string | null;
+  link_metadata: {
+    title: string | null;
+    description: string | null;
+    favicon: string | null;
+    og_image: string | null;
+  };
+  created_at: Date;
+  updated_at: Date;
 };

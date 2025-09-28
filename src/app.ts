@@ -67,18 +67,14 @@ app.get(
         return next(error);
       }
 
-      const url = await Url.findOneAndUpdate(
-        { short_link_id: shortLinkId },
-        { $push: { clicks_history: { time_stamp: Date.now() } } },
-        { new: true }
-      );
+      const url = await Url.findOne({ short_link_id: shortLinkId });
 
       if (!url) {
         const error = createHttpError(404, "URL not found");
         return next(error);
       }
 
-      res.redirect(url.original_link);
+      res.redirect(url.destination_url);
     } catch (err) {
       const error = createHttpError(
         500,
