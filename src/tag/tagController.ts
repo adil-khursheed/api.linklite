@@ -8,7 +8,7 @@ export const getTags = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { workspace_slug } = req.query;
+  const { workspace_slug } = req.params;
   if (!workspace_slug) {
     const error = createHttpError(
       400,

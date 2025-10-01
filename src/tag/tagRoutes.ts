@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(checkAuth);
 
-router.get("/get", getTags);
+router.get("/get/:workspace_slug", getTags);
 router.post("/create", createTag);
 
 export default router;

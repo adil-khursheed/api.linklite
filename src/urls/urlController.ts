@@ -3,7 +3,7 @@ import createHttpError from "http-errors";
 import Workspace from "../workspace/workspaceModel";
 import { extractHtmlMetadata } from "../utils/extractHtmlMetadata";
 import Url from "./urlModel";
-import { TLinkMetadata } from "../types/url";
+import { TLinkMetadata, TUrl } from "../types/url";
 
 export const scrapeMetadata = async (
   req: Request,
@@ -25,6 +25,46 @@ export const scrapeMetadata = async (
       err instanceof Error
         ? err.message
         : "An unknown error occurred while creating the URL"
+    );
+    return next(error);
+  }
+};
+
+export const getUrls = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { workspace_slug } = req.params;
+    const workspace = await Workspace.findOne({ slug: workspace_slug });
+    if (!workspace) {
+      const error = createHttpError(404, "Workspace not found");
+      return next(error);
+    }
+    const urls: TUrl[] = await Url.aggregate([
+      {
+        $match: {
+          workspace_id: workspace._id,
+        },
+      },
+      {
+        $lookup: {
+          from: "tags",
+          localField: "tags",
+          foreignField: "_id",
+          as: "tags",
+        },
+      },
+    ]);
+
+    res.json({ success: true, message: "Urls fetched successfully", urls });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while fetching the URLs"
     );
     return next(error);
   }

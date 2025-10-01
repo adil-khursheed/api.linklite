@@ -16,7 +16,7 @@ type TUrl = {
   tags: [mongoose.Types.ObjectId];
   comment: string | null;
   link_metadata: TLinkMetadata;
-  folder: mongoose.Types.ObjectId;
+  folder: mongoose.Types.ObjectId | null;
   created_at: Date;
   updated_at: Date;
 };
