@@ -36,6 +36,11 @@ const urlSchema = new Schema<TUrl>({
     favicon: { type: String, default: null },
     og_image: { type: String, default: null },
   },
+  folder: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Folder",
+    default: null,
+  },
   created_at: {
     type: Date,
     default: Date.now,

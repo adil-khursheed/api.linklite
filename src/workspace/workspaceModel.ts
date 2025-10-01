@@ -60,6 +60,10 @@ const workspaceSchema = new Schema<IWorkspaceProps>({
     type: Number,
     default: 5,
   },
+  tags_created: {
+    type: Number,
+    default: 0,
+  },
   folders_limit: {
     type: Number,
     default: 0,

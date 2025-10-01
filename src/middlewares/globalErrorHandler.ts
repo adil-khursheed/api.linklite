@@ -10,6 +10,7 @@ const globalErrorHandler = async (
   const statusCode = err.statusCode || 500;
 
   return res.status(statusCode).json({
+    success: false,
     message: err.message,
     errorStack: _config.nodeEnv === "development" ? err.stack : "",
   });

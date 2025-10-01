@@ -22,6 +22,7 @@ export interface IWorkspaceProps {
   created_by: mongoose.Types.ObjectId;
   invite_code: string;
   tags_limit: number;
+  tags_created: number;
   folders_limit: number;
   folders_created: number;
   created_at: Date;
