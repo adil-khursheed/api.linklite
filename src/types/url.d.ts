@@ -10,6 +10,7 @@ type TLinkMetadata = {
 type TUrl = {
   _id: string;
   workspace_id: mongoose.Types.ObjectId;
+  created_by: mongoose.Types.ObjectId;
   domain: string;
   short_link_id: string;
   destination_url: string;

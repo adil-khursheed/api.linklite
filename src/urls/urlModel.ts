@@ -7,6 +7,11 @@ const urlSchema = new Schema<TUrl>({
     ref: "Workspace",
     required: true,
   },
+  created_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   domain: {
     type: String,
     required: true,

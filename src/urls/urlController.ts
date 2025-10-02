@@ -50,11 +50,32 @@ export const getUrls = async (
       },
       {
         $lookup: {
+          from: "users",
+          localField: "created_by",
+          foreignField: "_id",
+          as: "created_by",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                display_name: 1,
+                email: 1,
+                avatar: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
           from: "tags",
           localField: "tags",
           foreignField: "_id",
           as: "tags",
         },
+      },
+      {
+        $unwind: "$created_by",
       },
     ]);
 
@@ -120,12 +141,13 @@ export const createUrl = async (
       link_metadata.favicon = url_metadata.favicon;
     }
 
-    if (url_metadata && url_metadata.og_image) {
+    if (url_metadata && url_metadata.image) {
       link_metadata.og_image = url_metadata.image;
     }
 
     const url = await Url.create({
       workspace_id: workspace._id,
+      created_by: req.user?._id,
       domain,
       short_link_id,
       destination_url,
