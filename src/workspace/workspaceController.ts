@@ -38,6 +38,146 @@ export const countWorkspace = async (
   }
 };
 
+export const getAllWorkspaces = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const workspaces = await Workspace.aggregate([
+      {
+        $match: {
+          created_by: req.user?._id,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "members",
+          foreignField: "_id",
+          as: "members",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                email: 1,
+                display_name: 1,
+                avatar: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "created_by",
+          foreignField: "_id",
+          as: "created_by",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                email: 1,
+                display_name: 1,
+                avatar: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: "$created_by",
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Workspaces fetched successfully",
+      workspaces,
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while fetching workspaces"
+    );
+    return next(error);
+  }
+};
+
+export const getWorkspaceBySlug = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { workspace_slug } = req.params;
+
+  if (!workspace_slug) {
+    const error = createHttpError(400, "Workspace slug is required");
+    return next(error);
+  }
+
+  const workspace = await Workspace.aggregate([
+    {
+      $match: {
+        slug: workspace_slug,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "members",
+        foreignField: "_id",
+        as: "members",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              email: 1,
+              display_name: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "created_by",
+        foreignField: "_id",
+        as: "created_by",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              email: 1,
+              display_name: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$created_by",
+    },
+  ]);
+
+  if (!workspace.length) {
+    const error = createHttpError(404, "Workspace not found");
+    return next(error);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Workspace fetched successfully",
+    workspace: workspace[0],
+  });
+};
+
 export const checkWorkspaceSlugs = async (
   req: Request,
   res: Response,
