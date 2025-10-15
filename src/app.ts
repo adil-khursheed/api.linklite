@@ -13,6 +13,7 @@ import workspaceRoutes from "./workspace/workspaceRoutes.js";
 import urlRoutes from "./urls/urlRoutes.js";
 import Url from "./urls/urlModel";
 import tagRoutes from "./tag/tagRoutes";
+import Workspace from "./workspace/workspaceModel";
 
 const app = express();
 
@@ -74,6 +75,22 @@ app.get(
         const error = createHttpError(404, "URL not found");
         return next(error);
       }
+
+      const workspace = await Workspace.findById(url.workspace_id);
+      if (!workspace) {
+        const error = createHttpError(404, "Workspace not found");
+        return next(error);
+      }
+
+      if (workspace.total_clicks >= workspace.clicks_limit) {
+        const error = createHttpError(403, "Workspace clicks limit reached");
+        return next(error);
+      }
+
+      workspace.total_clicks += 1;
+      url.total_clicks += 1;
+
+      await Promise.all([workspace.save(), url.save()]);
 
       res.redirect(url.destination_url);
     } catch (err) {

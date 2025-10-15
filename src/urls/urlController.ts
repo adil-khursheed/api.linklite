@@ -157,6 +157,7 @@ export const createUrl = async (
     });
 
     workspace.links_created += 1;
+    workspace.total_links += 1;
 
     await workspace.save();
 

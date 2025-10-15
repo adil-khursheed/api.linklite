@@ -14,6 +14,7 @@ type TUrl = {
   domain: string;
   short_link_id: string;
   destination_url: string;
+  total_clicks: number;
   tags: [mongoose.Types.ObjectId];
   comment: string | null;
   link_metadata: TLinkMetadata;

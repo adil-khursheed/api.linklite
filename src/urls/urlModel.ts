@@ -25,6 +25,10 @@ const urlSchema = new Schema<TUrl>({
     type: String,
     required: true,
   },
+  total_clicks: {
+    type: Number,
+    default: 0,
+  },
   tags: [
     {
       type: mongoose.Schema.Types.ObjectId,
