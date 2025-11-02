@@ -75,3 +75,29 @@ forgotPasswordWorker.on("completed", (job) => {
     logger.info(`Forgot password job completed for job ${job.id}`);
   }
 });
+
+export const sendInviteEmailWorker = new Worker(
+  "sendInviteEmail",
+  async (job) => {
+    logger.info("Send invite email job started");
+    await sendMail(job.data.options);
+    logger.info("Send invite email job completed");
+  },
+  workerOptions
+);
+
+sendInviteEmailWorker.on("failed", (job, err) => {
+  if (job) {
+    logger.error(
+      `Send invite email job failed for job ${job.id} with error: ${err.message}`
+    );
+  } else {
+    logger.error(`Send invite email job failed with error: ${err.message}`);
+  }
+});
+
+sendInviteEmailWorker.on("completed", (job) => {
+  if (job) {
+    logger.info(`Send invite email job completed for job ${job.id}`);
+  }
+});

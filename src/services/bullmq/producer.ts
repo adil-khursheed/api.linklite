@@ -9,6 +9,11 @@ const redisConnection = new Redis(redis_uri);
 export const emailVerificationQueue = new Queue("emailVerification", {
   connection: redisConnection,
 });
+
 export const forgotPasswordQueue = new Queue("forgotPassword", {
+  connection: redisConnection,
+});
+
+export const sendInviteEmailQueue = new Queue("sendInviteEmail", {
   connection: redisConnection,
 });

@@ -132,13 +132,11 @@ export const registerUser = async (
       options: {
         email,
         subject: "Email Verification",
-        message: `
-          <div>
-            <p>Thank you for registering with LinkLite.in</p>
-            <p>Your one time password is:</p>
-            <p>OTP: ${verifyEmailOtp}</p>
-          </div>
-        `,
+        type: "email-verification",
+        data: {
+          username: user.display_name,
+          otp: verifyEmailOtp,
+        },
       },
     });
 
@@ -235,13 +233,11 @@ export const resendEmail = async (
       options: {
         email: user.email,
         subject: "Email Verification",
-        message: `
-          <div>
-            <p>Thank you for registering with LinkLite.in</p>
-            <p>Your one time password is:</p>
-            <p>OTP: ${verifyEmailOtp}</p>
-          </div>
-        `,
+        type: "email-verification",
+        data: {
+          username: user.display_name,
+          otp: verifyEmailOtp,
+        },
       },
     });
 
@@ -436,12 +432,11 @@ export const forgotPassword = async (
       options: {
         email,
         subject: "Reset Password",
-        message: `
-            <h1 style="font-size:28px;font-weight:700;margin:30px 0;color:#333;">Password Reset Request</h1>
-            <p>We received a request to reset your password. Click the button below to reset it:</p>
-            <a href="${_config.frontend_url_1}/reset-password/${resetPasswordToken}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #010001; text-decoration: none; border-radius: 5px;">Reset Password</a>
-            <p>If you did not request a password reset, please ignore this email.</p>
-          `,
+        type: "forgot-password",
+        data: {
+          username: user.display_name,
+          resetLink: `${_config.frontend_url_2}/reset-password/${resetPasswordToken}`,
+        },
       },
     });
 
