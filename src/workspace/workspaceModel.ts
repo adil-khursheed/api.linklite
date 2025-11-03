@@ -26,12 +26,10 @@ const workspaceSchema = new Schema<IWorkspaceProps>({
     enum: ["free", "pro", "premium"],
     default: "free",
   },
-  members: [
-    {
-      type: mongoose.Types.ObjectId,
-      ref: "User",
-    },
-  ],
+  members_count: {
+    type: Number,
+    default: 0,
+  },
   members_limit: {
     type: Number,
     default: 1,
@@ -83,11 +81,6 @@ const workspaceSchema = new Schema<IWorkspaceProps>({
   billing_cycle_start: {
     type: Number,
     default: 0,
-  },
-  invite_code: {
-    type: String,
-    required: true,
-    unique: true,
   },
   total_links: {
     type: Number,

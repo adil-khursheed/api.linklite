@@ -14,6 +14,7 @@ import urlRoutes from "./urls/urlRoutes.js";
 import Url from "./urls/urlModel";
 import tagRoutes from "./tag/tagRoutes";
 import Workspace from "./workspace/workspaceModel";
+import workspaceMembershipRoutes from "./workspaceMembership/workspaceMembershipRoutes";
 
 const app = express();
 
@@ -108,6 +109,7 @@ app.get(
 // Routes
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/workspaces", workspaceRoutes);
+app.use("/api/v1/workspace-memberships", workspaceMembershipRoutes);
 app.use("/api/v1/urls", urlRoutes);
 app.use("/api/v1/tags", tagRoutes);
 

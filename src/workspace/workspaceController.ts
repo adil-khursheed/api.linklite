@@ -1,12 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import jwt from "jsonwebtoken";
 
 import Workspace from "./workspaceModel";
 import redis from "../services/redis";
 import User from "../user/userModel";
-import { sendInviteEmailQueue } from "../services/bullmq/producer";
-import { _config } from "../config/config";
 
 export const countWorkspace = async (
   req: Request,
@@ -267,22 +264,13 @@ export const createWorkspace = async (
       return next(error);
     }
 
-    const inviteTokenSecret = _config.invite_token_secret as string;
-
     const workspace = new Workspace({
       name,
       slug,
-      members: [userId],
+      members_count: 1,
       created_by: userId,
       billing_cycle_start: new Date(Date.now()).getDate(),
     });
-
-    const inviteToken = jwt.sign(
-      { workspace_id: workspace._id },
-      inviteTokenSecret
-    );
-
-    workspace.invite_code = inviteToken;
 
     await workspace.save();
 
@@ -305,64 +293,6 @@ export const createWorkspace = async (
       err instanceof Error
         ? err.message
         : "An unknown error occurred while creating the workspace"
-    );
-    return next(error);
-  }
-};
-
-export const inviteTeamMembers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { emails } = req.body;
-    const { workspace_slug } = req.params;
-
-    if (!Array.isArray(emails)) {
-      const error = createHttpError(400, "Emails must be an array");
-      return next(error);
-    }
-
-    if (!workspace_slug) {
-      const error = createHttpError(400, "Workspace slug is required");
-      return next(error);
-    }
-
-    const workspace = await Workspace.findOne({
-      slug: workspace_slug,
-    });
-    if (!workspace) {
-      const error = createHttpError(404, "Workspace not found");
-      return next(error);
-    }
-
-    await Promise.all(
-      emails.map((email) => {
-        sendInviteEmailQueue.add("invite_email", {
-          options: {
-            email,
-            subject: "Invite to join Workspace",
-            type: "invite-workspace",
-            data: {
-              workspaceName: workspace.name,
-              inviteLink: `${_config.frontend_url_2}/signup?invite_code=${workspace.invite_code}`,
-            },
-          },
-        });
-      })
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Invite emails sent successfully",
-    });
-  } catch (err) {
-    const error = createHttpError(
-      500,
-      err instanceof Error
-        ? err.message
-        : "An unknown error occurred while creating the invite"
     );
     return next(error);
   }

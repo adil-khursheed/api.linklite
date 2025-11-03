@@ -9,7 +9,7 @@ export interface IWorkspaceProps {
     url: string | null;
   };
   plan: "free" | "pro" | "premium";
-  members: [mongoose.Types.ObjectId];
+  members_count: number;
   members_limit: number;
   short_links_limit: number;
   links_created: number;
@@ -20,7 +20,6 @@ export interface IWorkspaceProps {
   clicks_limit: number;
   billing_cycle_start: number;
   created_by: mongoose.Types.ObjectId;
-  invite_code: string;
   tags_limit: number;
   tags_created: number;
   folders_limit: number;
