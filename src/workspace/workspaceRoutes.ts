@@ -5,6 +5,7 @@ import {
   createWorkspace,
   getAllWorkspaces,
   getWorkspaceBySlug,
+  updateWorkspace,
 } from "./workspaceController";
 import { checkAuth } from "../middlewares/checkAuth";
 
@@ -17,5 +18,6 @@ router.post("/check-slug", checkWorkspaceSlugs);
 router.post("/create", createWorkspace);
 router.get("/get/:workspace_slug", getWorkspaceBySlug);
 router.get("/get", getAllWorkspaces);
+router.patch("/update/:workspace_slug", updateWorkspace);
 
 export default router;

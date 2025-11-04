@@ -297,3 +297,49 @@ export const createWorkspace = async (
     return next(error);
   }
 };
+
+export const updateWorkspace = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { name, slug } = req.body;
+    if (!name && !slug) {
+      const error = createHttpError(400, "Name and slug are required");
+      return next(error);
+    }
+
+    const { workspace_slug } = req.params;
+    if (!workspace_slug) {
+      const error = createHttpError(400, "Workspace slug is required");
+      return next(error);
+    }
+
+    const workspace = await Workspace.findOne({ slug: workspace_slug });
+    if (!workspace) {
+      const error = createHttpError(404, "Workspace not found");
+      return next(error);
+    }
+
+    if (name) workspace.name = name;
+    if (slug) workspace.slug = slug;
+
+    workspace.updated_at = new Date(Date.now());
+    await workspace.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Workspace updated successfully",
+      workspace,
+    });
+  } catch (err) {
+    const error = createHttpError(
+      500,
+      err instanceof Error
+        ? err.message
+        : "An unknown error occurred while updating the workspace"
+    );
+    return next(error);
+  }
+};
