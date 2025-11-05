@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+
 import jwt, { JwtPayload } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { NextFunction, Request, Response } from "express";

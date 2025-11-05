@@ -8,12 +8,16 @@ import createHttpError from "http-errors";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import { _config } from "./config/config";
 
-import userRoutes from "./user/userRoutes.js";
-import workspaceRoutes from "./workspace/workspaceRoutes.js";
-import urlRoutes from "./urls/urlRoutes.js";
-import Url from "./urls/urlModel";
-import tagRoutes from "./tag/tagRoutes";
+// Models
 import Workspace from "./workspace/workspaceModel";
+import Url from "./urls/urlModel";
+
+// Routes
+import userRoutes from "./user/userRoutes";
+import workspaceRoutes from "./workspace/workspaceRoutes";
+import urlRoutes from "./urls/urlRoutes";
+import tagRoutes from "./tag/tagRoutes";
+import invitationRoutes from "./invitation/invitationRoutes";
 import workspaceMembershipRoutes from "./workspaceMembership/workspaceMembershipRoutes";
 
 const app = express();
@@ -109,7 +113,8 @@ app.get(
 // Routes
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/workspaces", workspaceRoutes);
-app.use("/api/v1/workspace-memberships", workspaceMembershipRoutes);
+app.use("/api/v1/invitation", invitationRoutes);
+app.use("/api/v1/memberships", workspaceMembershipRoutes);
 app.use("/api/v1/urls", urlRoutes);
 app.use("/api/v1/tags", tagRoutes);
 

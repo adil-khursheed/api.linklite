@@ -98,7 +98,6 @@ export const createUrl = async (
 ) => {
   try {
     const {
-      workspace_slug,
       destination_url,
       short_link_id,
       domain,
@@ -107,10 +106,19 @@ export const createUrl = async (
       url_metadata,
     } = req.body;
 
-    if (!destination_url || !workspace_slug || !short_link_id || !domain) {
+    const { workspace_slug } = req.params;
+    if (!workspace_slug) {
       const error = createHttpError(
         400,
-        "Destination url or workspace id or short link id or domain is missing"
+        "Missing required parameter: workspace_slug"
+      );
+      return next(error);
+    }
+
+    if (!destination_url || !short_link_id || !domain) {
+      const error = createHttpError(
+        400,
+        "Missing required parameter: destination_url, short_link_id and domain"
       );
       return next(error);
     }

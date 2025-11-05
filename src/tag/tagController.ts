@@ -38,8 +38,17 @@ export const createTag = async (
   next: NextFunction
 ) => {
   try {
-    const { name, workspace_slug } = req.body;
-    if (!name || !workspace_slug) {
+    const { name } = req.body;
+    const { workspace_slug } = req.params;
+    if (!workspace_slug) {
+      const error = createHttpError(
+        400,
+        "Missing required parameter: workspace_slug"
+      );
+      return next(error);
+    }
+
+    if (!name) {
       const error = createHttpError(
         400,
         "Missing required fields: name and workspace_slug"
